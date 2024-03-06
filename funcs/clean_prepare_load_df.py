@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 from airflow import DAG, XComArg
 
-from DDS_dag.csv_to_db_func import get_connect
+from funcs.csv_to_db_func import get_connect
 
 
 def get_data(table):

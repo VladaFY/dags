@@ -1,53 +1,34 @@
-"""Подключение необходимых библиотек."""
 from datetime import datetime
-from typing import Union, List, Dict
 
-# import data_quality as dq
-from airflow import AirflowException, DAG
-from airflow.operators.empty import EmptyOperator
+from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.providers.postgres.operators.postgres import PostgresOperator
-
+from airflow.operators.dummy import DummyOperator
 from datetime import datetime
 from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 from DDS_dag.csv_to_db_func import csv_to_db
 
 
 
-with DAG('csv_to_dds',
+with DAG('csv_to_sql',
          description="Загрузка данных со слоя sources на слой dds",
-         schedule_interval="0 0 * * *",
-         start_date=datetime(2023, 7, 1),
+         schedule_interval="0 1 * * *",
+         start_date=datetime(2024, 3, 1),
          catchup=False,
-         tags=["etl-process"]) as dag:
+         tags=["csv"]) as dag:
         
-    
-    transfer_data = PythonOperator(
-        task_id='csv_to_db', python_callable=csv_to_db)
+    start_step = DummyOperator(task_id='start_step')
 
-    #  pre_clean_test_solution_table = PostgresOperator(task_id='pre_clean_test_solution_table',
-    #                                    sql='delete from vlada_test.test_solution where 1=1 ',
-    #                                    postgres_conn_id='pactg_db'
-    #                                    )
+    end_step = DummyOperator(task_id='end_step')
     
+    transfer_data_employees = PythonOperator(
+        task_id='transfer_data_employees', python_callable=csv_to_db,op_kwargs={'table': 'test_employees', 'csv': '/opt/airflow/dags/employees.csv'})
     
-    #  load_from_csv_test_solution = BashOperator(task_id="load_from_csv_test_solution",
-    #                           bash_command="python /opt/airflow/dags/scripts_and_files/test_solution.py",
-    #                           )
+    transfer_data_emails = PythonOperator(
+        task_id='transfer_data_emails', python_callable=csv_to_db,op_kwargs={'table': 'test_employees', 'csv': '/opt/airflow/dags/emails.csv'})
     
-     # task_pos = BashOperator(task_id="clean_pos_task",
-                              # bash_command="python /opt/airflow/dags/scripts_and_files/cleaning_pos.py",
-                              # )
+    transfer_data_salary = PythonOperator(
+        task_id='transfer_data_salary', python_callable=csv_to_db,op_kwargs={'table': 'test_employees', 'csv': '/opt/airflow/dags/salary.csv'})
+    
 
-    # remove_all_data >> [brand_upload, category_upload, stores_upload]
-    # [brand_upload, category_upload] >> product_upload
-    # stores_upload >> [transaction_stores_upload, stock_upload, stores_emails_upload]
-    # product_upload >> [product_quantity_upload, stock_upload, transaction_upload]
-    # transaction_stores_upload >> transaction_upload        
-
-#     remove_all_data
-    #  pre_clean_test_solution_table >> load_from_csv_test_solution
+    start_step >> [transfer_data_employees, transfer_data_emails, transfer_data_salary] >> end_step

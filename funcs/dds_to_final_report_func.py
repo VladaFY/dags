@@ -7,11 +7,9 @@ import pandas.io.sql as sqlio
 from sqlalchemy import create_engine
 import pandas as pd
 
-from DDS_dag.csv_to_db_func import get_connect
+from funcs.csv_to_db_func import get_connect
 
-
-def get_data(table):
-
+def get_data():
     with get_connect('pactg_db') as conn:
         print('START_EXTRACT')
         query = """
@@ -34,18 +32,19 @@ def get_data(table):
         print(data)
         return data
 
-
-def transfer_data(target_table):
-    data = get_data(target_table)
+def load_final_report(table):
+    data = get_data()
     with get_connect('pactg_db') as conn:
         engine = conn.get_sqlalchemy_engine()
         with engine.begin() as conn:
             # delete old data
-            engine.execute(f'truncate table {target_table};')
+            engine.execute(f'truncate table {table};')
 
-            print(f'START_LOADING {target_table}')
-            data.to_sql(target_table, engine, schema='vlada_test',
+            print(f'START_LOADING {table}')
+            data.to_sql(table, engine, schema='vlada_test',
                                 if_exists='append', index=False)
             
-            print(f"LOADING SUCCESS {target_table}")
+            print(f"LOADING SUCCESS {table}")
+
+
 
