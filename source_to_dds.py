@@ -18,16 +18,16 @@ with DAG(dag_id='source_to_dds',
         
     check_table_task_employees = PythonOperator(
         task_id='check_table_task_employees', python_callable=check_table
-        , op_kwargs={'table_dds': 'vlada_test.test_employees_'})
+        , op_kwargs={'table_dds': 'vlada_test.test_employees'})
     
     transfer_data_employees = PythonOperator(
         task_id='transfer_data_employees', python_callable=transfer
         , op_kwargs={'table': 'vlada_test.test_employees'
-                     , 'target_table': 'vlada_test.test_employees_', 'primary_key': 'id'})
+                     , 'target_table': 'vlada_test.test_employees_dds', 'primary_key': 'id'})
     
     check_table_task_salary = PythonOperator(
         task_id='check_table_task_salary', python_callable=transfer
-        , op_kwargs={'table_dds': 'vlada_test.test_salary_'})
+        , op_kwargs={'table_dds': 'vlada_test.test_salary'})
     
     transfer_data_salary = PythonOperator(
         task_id='transfer_data', python_callable=transfer
@@ -37,7 +37,7 @@ with DAG(dag_id='source_to_dds',
      
     check_table_task_emails = PythonOperator(
         task_id='check_table_task_emails', python_callable=check_table
-        , op_kwargs={'table_dds': 'vlada_test.test_emails_dm'})
+        , op_kwargs={'table_dds': 'vlada_test.test_emails'})
     
     transfer_data_emails = PythonOperator(
         task_id='transfer_data_emails', python_callable=transfer
